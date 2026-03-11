@@ -9,7 +9,7 @@ import {
 import type { DecorationSet, ViewUpdate } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import type { Range } from '@codemirror/state';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
+import { defaultKeymap, history as cmHistory, historyKeymap } from '@codemirror/commands';
 import { solve } from './solver';
 import type { LineResult } from './solver';
 
@@ -202,13 +202,37 @@ E * q = 273000
 `;
 
 // ---------------------------------------------------------------------------
+// URL hash sync
+// ---------------------------------------------------------------------------
+
+function docFromHash(): string | null {
+  const hash = location.hash.slice(1);
+  if (!hash) return null;
+  try {
+    return decodeURIComponent(hash);
+  } catch {
+    return null;
+  }
+}
+
+let hashUpdateTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleHashUpdate(content: string) {
+  if (hashUpdateTimer !== null) clearTimeout(hashUpdateTimer);
+  hashUpdateTimer = setTimeout(() => {
+    window.history.replaceState(null, '', '#' + encodeURIComponent(content));
+    hashUpdateTimer = null;
+  }, 300);
+}
+
+// ---------------------------------------------------------------------------
 // Bootstrap
 // ---------------------------------------------------------------------------
 
 const state = EditorState.create({
-  doc: INITIAL_DOC,
+  doc: docFromHash() ?? INITIAL_DOC,
   extensions: [
-    history(),
+    cmHistory(),
     keymap.of([...defaultKeymap, ...historyKeymap]),
     EditorView.lineWrapping,
     EditorView.contentAttributes.of({
@@ -218,10 +242,24 @@ const state = EditorState.create({
     }),
     solverPlugin,
     theme,
+    EditorView.updateListener.of((update) => {
+      if (update.docChanged) scheduleHashUpdate(update.state.doc.toString());
+    }),
   ],
 });
 
 new EditorView({
   state,
   parent: document.getElementById('editor')!,
+});
+
+// ---------------------------------------------------------------------------
+// Copy link button
+// ---------------------------------------------------------------------------
+
+const copyBtn = document.getElementById('copy-link')!;
+copyBtn.addEventListener('click', async () => {
+  await navigator.clipboard.writeText(location.href);
+  copyBtn.textContent = 'Copied!';
+  setTimeout(() => { copyBtn.textContent = 'Copy link'; }, 2000);
 });

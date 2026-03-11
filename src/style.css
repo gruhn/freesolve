@@ -47,6 +47,25 @@ header {
   letter-spacing: -0.03em;
 }
 
+#copy-link {
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--subtext);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+#copy-link:hover {
+  color: var(--text);
+  border-color: var(--subtext);
+}
+
 main {
   flex: 1;
   overflow: hidden;
