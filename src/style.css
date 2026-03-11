@@ -47,8 +47,21 @@ header {
   letter-spacing: -0.03em;
 }
 
-#copy-link {
+.github-link {
   margin-left: auto;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--subtext);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.github-link:hover {
+  color: var(--text);
+}
+
+#copy-link {
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 500;
