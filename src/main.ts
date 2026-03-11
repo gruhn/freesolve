@@ -84,11 +84,17 @@ function buildDecorations(view: EditorView): DecorationSet {
 
     switch (result.type) {
       case 'solved': {
-        // For direct assignments (q = 0.0054) the result is obvious — skip widget.
-        const lhsPart = line.text.split('=')[0].trim();
-        const isDirect =
-          /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(lhsPart) && result.variable === lhsPart;
-        if (isDirect) continue;
+        // Skip widget for plain assignments like `q = 0.0054` — the value is
+        // already written. But show it when the RHS is an expression whose
+        // value isn't immediately obvious, e.g. `b = a + 3`.
+        const eqIdx = line.text.indexOf('=');
+        const lhsPart = line.text.slice(0, eqIdx).trim();
+        const rhsPart = line.text.slice(eqIdx + 1).trim();
+        const isDirectAssign =
+          /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(lhsPart) &&
+          result.variable === lhsPart &&
+          !isNaN(Number(rhsPart));
+        if (isDirectAssign) continue;
         label = `${result.variable} = ${formatNum(result.value!)}`;
         cls = 'rw-solved';
         break;
