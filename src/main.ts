@@ -162,12 +162,13 @@ const theme = EditorView.theme(
     '.cm-content': {
       padding: '32px 28px',
       caretColor: '#89b4fa',
+      outline: 'none',
     },
     '.cm-line': {
       lineHeight: '1.9',
       padding: '0',
     },
-    '.cm-focused': { outline: 'none' },
+    '&.cm-focused': { outline: 'none' },
     '.cm-cursor, .cm-dropCursor': { borderLeftColor: '#89b4fa' },
     '.cm-selectionBackground, ::selection': { background: '#313244 !important' },
     '.cm-activeLine': { background: 'rgba(137,180,250,0.05)' },
