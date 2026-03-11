@@ -1,0 +1,26 @@
+{
+  "name": "eq-solver",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.10.2",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/state": "^6.5.4",
+    "@codemirror/view": "^6.39.17",
+    "codemirror": "^6.0.2",
+    "mathjs": "^15.1.1"
+  }
+}
