@@ -88,7 +88,7 @@ function buildDecorations(view: EditorView): DecorationSet {
         const isDirect =
           /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(lhsPart) && result.variable === lhsPart;
         if (isDirect) continue;
-        label = `= ${formatNum(result.value!)}`;
+        label = `${result.variable} = ${formatNum(result.value!)}`;
         cls = 'rw-solved';
         break;
       }
