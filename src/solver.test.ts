@@ -25,9 +25,9 @@ describe('empty / comment lines', () => {
     expect(r.type).toBe('empty');
   });
 
-  it('line without = → type error', () => {
+  it('line without = → treated as expression (unknown symbols → unsolved)', () => {
     const [r] = solve('just text');
-    expect(r.type).toBe('error');
+    expect(r.type).toBe('unsolved');
   });
 });
 
@@ -244,5 +244,40 @@ describe('whitespace tolerance', () => {
     const solved = results.filter((r) => r.type === 'solved');
     expect(solved).toHaveLength(2);
     expect(solved[1].value).toBeCloseTo(20);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pure expression lines (no =)
+// ---------------------------------------------------------------------------
+
+describe('pure expressions', () => {
+  it('constant expression evaluates immediately', () => {
+    const [r] = solve('2 + 3');
+    expect(r.type).toBe('expression');
+    expect(r.value).toBeCloseTo(5);
+  });
+
+  it('expression using a known variable', () => {
+    const results = solveLines(['x = 4', 'x * 10']);
+    expect(results[1].type).toBe('expression');
+    expect(results[1].value).toBeCloseTo(40);
+  });
+
+  it('expression with multiple known variables', () => {
+    const results = solveLines(['E = 50000', 'p = 0.002', 'E * p']);
+    expect(results[2].type).toBe('expression');
+    expect(results[2].value).toBeCloseTo(100);
+  });
+
+  it('expression with unknown variable stays unsolved', () => {
+    const [r] = solve('E * p');
+    expect(r.type).toBe('unsolved');
+  });
+
+  it('expression using a variable solved by constraint', () => {
+    const results = solveLines(['q = 0.0054', 'E * q = 273000', 'E * p * q = 370', 'E * p']);
+    expect(results[3].type).toBe('expression');
+    expect(results[3].value).toBeCloseTo(370 / 0.0054);
   });
 });

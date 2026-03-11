@@ -100,6 +100,10 @@ function buildDecorations(view: EditorView): DecorationSet {
         label = '✗  contradiction';
         cls = 'rw-fail';
         break;
+      case 'expression':
+        label = `= ${formatNum(result.value!)}`;
+        cls = 'rw-solved';
+        break;
       case 'unsolved':
         label = '?';
         cls = 'rw-unsolved';

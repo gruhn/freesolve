@@ -3,7 +3,7 @@ import * as math from 'mathjs';
 // Names that exist on the math object (builtins like pi, e, sin, cos, ...)
 const MATH_BUILTINS = new Set(Object.getOwnPropertyNames(math));
 
-export type ResultType = 'empty' | 'solved' | 'check-ok' | 'check-fail' | 'unsolved' | 'error';
+export type ResultType = 'empty' | 'solved' | 'check-ok' | 'check-fail' | 'unsolved' | 'expression' | 'error';
 
 export interface LineResult {
   type: ResultType;
@@ -12,11 +12,10 @@ export interface LineResult {
   message?: string;
 }
 
-function getUnknownSymbols(lhs: string, rhs: string, scope: Record<string, number>): string[] {
+function getUnknownSymbols(expr: string, scope: Record<string, number>): string[] {
   try {
-    const combined = math.parse(`(${lhs}) - (${rhs})`);
     const symbols = new Set<string>();
-    combined.traverse((node: any) => {
+    math.parse(expr).traverse((node: any) => {
       if (node.type === 'SymbolNode' && !MATH_BUILTINS.has(node.name)) {
         symbols.add(node.name);
       }
@@ -70,10 +69,16 @@ interface Equation {
   rhs: string;
 }
 
+interface Expression {
+  lineIndex: number;
+  expr: string;
+}
+
 export function solve(text: string): LineResult[] {
   const lines = text.split('\n');
   const results: LineResult[] = lines.map(() => ({ type: 'empty' as ResultType }));
   const equations: Equation[] = [];
+  const expressions: Expression[] = [];
 
   // --- Parse lines ---
   for (let i = 0; i < lines.length; i++) {
@@ -94,7 +99,14 @@ export function solve(text: string): LineResult[] {
     }
 
     if (eqPos === -1) {
-      results[i] = { type: 'error', message: 'no "=" found' };
+      // No `=` — treat as a pure expression to evaluate
+      try {
+        math.parse(raw); // validate it parses
+        expressions.push({ lineIndex: i, expr: raw });
+        results[i] = { type: 'unsolved' };
+      } catch {
+        results[i] = { type: 'error', message: 'invalid expression' };
+      }
       continue;
     }
 
@@ -120,7 +132,7 @@ export function solve(text: string): LineResult[] {
     for (const { lineIndex, lhs, rhs } of equations) {
       if (results[lineIndex].type !== 'unsolved') continue;
 
-      const unknowns = getUnknownSymbols(lhs, rhs, scope);
+      const unknowns = getUnknownSymbols(`(${lhs}) - (${rhs})`, scope);
 
       if (unknowns.length === 0) {
         // All variables known — validate the equation
@@ -152,6 +164,20 @@ export function solve(text: string): LineResult[] {
       }
       // 2+ unknowns: can't solve yet, come back next iteration
     }
+  }
+
+  // --- Evaluate pure expressions ---
+  for (const { lineIndex, expr } of expressions) {
+    const unknowns = getUnknownSymbols(expr, scope);
+    if (unknowns.length === 0) {
+      try {
+        const value = Number(math.evaluate(expr, scope));
+        results[lineIndex] = { type: 'expression', value };
+      } catch (e) {
+        results[lineIndex] = { type: 'error', message: String(e) };
+      }
+    }
+    // else: still has unknowns → stays 'unsolved'
   }
 
   return results;
