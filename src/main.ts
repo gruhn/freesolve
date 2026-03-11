@@ -19,18 +19,21 @@ import type { LineResult } from './solver';
 
 function formatNum(n: number): string {
   if (!isFinite(n)) return String(n);
+  if (n === 0) return '0';
 
+  // Near-integer: show with comma thousands-separators, no decimals.
   const rounded = Math.round(n);
   if (Math.abs(n - rounded) < Math.abs(n) * 1e-9 + 1e-12) {
     return rounded.toLocaleString('en-US');
   }
 
-  const abs = Math.abs(n);
-  if (abs >= 0.0001 && abs < 1e7) {
-    return parseFloat(n.toPrecision(6)).toString();
-  }
-
-  return n.toExponential(4);
+  // 6 significant figures, spelled out — never scientific notation.
+  // Compute decimal places from magnitude: e.g. 0.0000135 → magnitude -5
+  // → decimalPlaces = 5 - (-5) = 10 → "0.0000135000" → strip → "0.0000135"
+  const magnitude = Math.floor(Math.log10(Math.abs(n)));
+  const decimalPlaces = Math.max(0, 5 - magnitude);
+  const fixed = n.toFixed(decimalPlaces);
+  return fixed.includes('.') ? fixed.replace(/\.?0+$/, '') : fixed;
 }
 
 // ---------------------------------------------------------------------------
