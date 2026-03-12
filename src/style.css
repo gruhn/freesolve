@@ -48,8 +48,9 @@ header {
 }
 
 .github-link {
-  margin-left: auto;
   font-family: var(--font-ui);
+  padding-left: 13px;
+  position: relative;
   font-size: 13px;
   font-weight: 500;
   color: var(--subtext);
@@ -61,7 +62,19 @@ header {
   color: var(--text);
 }
 
+.github-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1em;
+  width: 1px;
+  background: var(--border);
+}
+
 #copy-link {
+  margin-left: auto;
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 500;
